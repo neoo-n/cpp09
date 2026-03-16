@@ -1,0 +1,30 @@
+#ifndef	BITCOINEXCHANGE_HPP
+
+#define BITCOINEXCHANGE_HPP
+#include <iostream>
+#include <map>
+#include <fstream>
+#include <sstream>
+#include <exception>
+
+class BitcoinExchange
+{
+	private:
+		std::multimap<std::string, float>	_input_value;
+		std::string							_file_input_name;
+		std::ifstream						_file_input;
+
+		BitcoinExchange();
+		BitcoinExchange(const BitcoinExchange &cpy);
+		BitcoinExchange	&operator=(const BitcoinExchange &obj);
+
+		void	setting_value();
+		
+	public:
+		BitcoinExchange(std::string file_name);
+		~BitcoinExchange();
+
+		void	computing();
+};
+
+#endif
