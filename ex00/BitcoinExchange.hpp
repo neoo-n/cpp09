@@ -2,6 +2,8 @@
 
 #define BITCOINEXCHANGE_HPP
 #include <iostream>
+#include <ctime>
+#include <cmath>
 #include <map>
 #include <fstream>
 #include <sstream>
@@ -19,6 +21,8 @@ class BitcoinExchange
 		BitcoinExchange	&operator=(const BitcoinExchange &obj);
 
 		void	setting_value();
+		float	find_value(std::string date);
+		bool	bad_date(std::string date);
 		
 	public:
 		BitcoinExchange(std::string file_name);

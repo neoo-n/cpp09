@@ -11,7 +11,8 @@ int main(int ac, char **av)
 	{
 		std::string	file_name;
 		file_name = av[1];
-		BitcoinExchange	bt(file_name);
+		BitcoinExchange	be(file_name);
+		be.computing();
 	}
 	catch(const std::exception& e)
 	{
