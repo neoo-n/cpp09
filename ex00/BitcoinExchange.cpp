@@ -58,6 +58,7 @@ void	BitcoinExchange::setting_value()
 	std::string			temp;
 	float				nb;
 
+	getline(this->_file_input, line);
 	while (getline(this->_file_input, line))
 	{
 		pos = line.find('|');
@@ -74,8 +75,7 @@ void	BitcoinExchange::setting_value()
 			ss >> temp;
 			ss >> nb;
 		}
-		this->_input_value.insert(std::make_pair(temp, nb));
-		// std::cout << "temp : " << temp << ", nb : " << nb << std::endl;
+		this->_input_value.push_back(std::make_pair(temp, nb));
 	}
 }
 
@@ -118,7 +118,6 @@ float	BitcoinExchange::find_value(std::string date)
 		}
 		before_line = line;
 	}
-	std::cout << "line : " << before_line << std::endl;
 	std::stringstream	ss(before_line.substr(pos + 1, before_line.size() - pos - 1));
 	ss >> res;
 	data_file.close();
@@ -151,18 +150,19 @@ bool	BitcoinExchange::bad_date(std::string date)
 // PUBLIC
 void	BitcoinExchange::computing()
 {
-	for (std::multimap<std::string, float>::iterator it = this->_input_value.begin(); it != this->_input_value.end(); it++)
+	while (!this->_input_value.empty())
 	{
-		if (bad_date(it->first))
-			std::cerr << "Error : bad input => " << it->first << std::endl;
+		if (bad_date(this->_input_value.front().first))
+			std::cerr << "Error : bad input => " << this->_input_value.front().first << std::endl;
 		else
 		{
-			if (it->second < 0)
+			if (this->_input_value.front().second < 0)
 				std::cerr << "Error : not a positive number." << std::endl;
-			else if (it->second > 1000)
+			else if (this->_input_value.front().second > 1000)
 				std::cerr << "Error : too large a number." << std::endl;
 			else
-				std::cout << it->first << " => " << it->second << " = " << it->second * this->find_value(it->first) << std::endl;
+				std::cout << this->_input_value.front().first << " => " << this->_input_value.front().second << " = " << this->_input_value.front().second * this->find_value(this->_input_value.front().first) << std::endl;
 		}
+		this->_input_value.pop_front();
 	}
 }

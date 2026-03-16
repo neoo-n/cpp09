@@ -4,7 +4,7 @@
 #include <iostream>
 #include <ctime>
 #include <cmath>
-#include <map>
+#include <list>
 #include <fstream>
 #include <sstream>
 #include <exception>
@@ -12,9 +12,9 @@
 class BitcoinExchange
 {
 	private:
-		std::multimap<std::string, float>	_input_value;
-		std::string							_file_input_name;
-		std::ifstream						_file_input;
+		std::list<std::pair<std::string, float> >	_input_value;
+		std::string									_file_input_name;
+		std::ifstream								_file_input;
 
 		BitcoinExchange();
 		BitcoinExchange(const BitcoinExchange &cpy);
