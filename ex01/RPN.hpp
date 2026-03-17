@@ -3,25 +3,23 @@
 #define RPN_HPP
 
 #include <iostream>
-#include <deque>
+#include <stack>
 #include <sstream>
 #include <exception>
 
 class RPN
 {
 	private:
-		std::deque<std::string>	_value_list;
-		std::deque<int>			_calculation_list;
+		std::stack<int>		_value_stack;
 
-		RPN();
 		RPN(const RPN &cpy);
 		RPN	&operator=(const RPN &obj);
-
-	public:
-		RPN(std::string list_input);
+		
+		public:
+		RPN();
 		~RPN();
 
-		void	computing();
+		void	computing(std::string list_input);
 };
 
 #endif

@@ -9,8 +9,8 @@ int main(int ac, char **av)
 	}
 	try
 	{
-		RPN	rpn(av[1]);
-		rpn.computing();
+		RPN	rpn;
+		rpn.computing(av[1]);
 	}
 	catch(const std::exception& e)
 	{
