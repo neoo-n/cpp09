@@ -10,9 +10,9 @@ int main(int ac, char **av)
 	try
 	{
 		std::string	file_name;
-		file_name = av[1];
+		file_name = "data.csv";
 		BitcoinExchange	be(file_name);
-		be.computing();
+		be.computing(av[1]);
 	}
 	catch(const std::exception& e)
 	{

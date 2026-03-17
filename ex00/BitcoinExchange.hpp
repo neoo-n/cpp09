@@ -3,8 +3,9 @@
 #define BITCOINEXCHANGE_HPP
 #include <iostream>
 #include <ctime>
+#include <cstdio>
 #include <cmath>
-#include <list>
+#include <map>
 #include <fstream>
 #include <sstream>
 #include <exception>
@@ -12,23 +13,22 @@
 class BitcoinExchange
 {
 	private:
-		std::list<std::pair<std::string, float> >	_input_value;
-		std::string									_file_input_name;
-		std::ifstream								_file_input;
+		std::map<std::string, float>	_data_value;
+		std::string						_file_data_name;
 
 		BitcoinExchange();
 		BitcoinExchange(const BitcoinExchange &cpy);
 		BitcoinExchange	&operator=(const BitcoinExchange &obj);
 
-		void	setting_value();
-		float	find_value(std::string date);
-		bool	bad_date(std::string date);
+		void	_setting_value();
+		float	_find_value(std::string date);
+		bool	_bad_input(std::string str);
 		
 	public:
 		BitcoinExchange(std::string file_name);
 		~BitcoinExchange();
 
-		void	computing();
+		void	computing(std::string input_file);
 };
 
 #endif

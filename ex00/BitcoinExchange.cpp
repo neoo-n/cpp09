@@ -8,98 +8,48 @@ BitcoinExchange::BitcoinExchange(const BitcoinExchange &cpy)
 {
 	if (this != &cpy)
 	{
-		this->_input_value = cpy._input_value;
-		this->_file_input_name = cpy._file_input_name;
-		if (this->_file_input.is_open())
-			this->_file_input.close();
-		this->_file_input.open(this->_file_input_name.c_str());
-		if (!this->_file_input.is_open())
+		this->_data_value = cpy._data_value;
 			throw std::invalid_argument("File could not open.");
 	}
 }
 
 BitcoinExchange::~BitcoinExchange()
 {
-	if (this->_file_input.is_open())
-	this->_file_input.close();
 }
 
 BitcoinExchange	&BitcoinExchange::operator=(const BitcoinExchange &obj)
 {
 	if (this != &obj)
 	{
-		this->_input_value = obj._input_value;
-		this->_file_input_name = obj._file_input_name;
-		if (this->_file_input.is_open())
-		this->_file_input.close();
-		this->_file_input.open(this->_file_input_name.c_str());
-		if (!this->_file_input.is_open())
-			throw std::invalid_argument("File could not open.");
+		this->_data_value = obj._data_value;
+		this->_file_data_name = obj._file_data_name;
 	}
 	return (*this);
 }
 
 BitcoinExchange::BitcoinExchange(std::string file_name)
-: _file_input_name(file_name)
+: _file_data_name(file_name)
 {
-	this->_file_input.open(this->_file_input_name.c_str());
-	if (!this->_file_input.is_open())
-		throw std::invalid_argument("File could not open.");
-	setting_value();
+	this->_setting_value();
 }
 
 // METHODS
 
 // PRIVATE
-void	BitcoinExchange::setting_value()
-{
-	std::string			line;
-	size_t				pos;
-	std::string			temp;
-	float				nb;
 
-	getline(this->_file_input, line);
-	while (getline(this->_file_input, line))
-	{
-		pos = line.find('|');
-		if (pos == std::string::npos)
-		{
-			pos = line.size();
-			temp = line;
-			nb = 0;
-		}
-		else
-		{
-			line[pos] = ' ';
-			std::stringstream	ss(line);
-			ss >> temp;
-			ss >> nb;
-		}
-		this->_input_value.push_back(std::make_pair(temp, nb));
-	}
-}
-
-float	BitcoinExchange::find_value(std::string date)
+void	BitcoinExchange::_setting_value()
 {
-	std::string		before_line;
 	std::string		line;
 	size_t			pos;
-	time_t			closer_pos;
+	std::string		temp;
+	float			nb;
 	std::ifstream	data_file;
-	time_t			input;
-	time_t			data;
-	std::string		formatPattern = "%Y-%m-%d";  
-    tm				timeParts = {};
-	float			res;
-    
-	data_file.open("data.csv");
+
+	data_file.open(this->_file_data_name.c_str());
 	if (!data_file.is_open())
-	throw std::invalid_argument("File could not open.");
-	
-	strptime(date.c_str(), formatPattern.c_str(), &timeParts);
-	input = mktime(&timeParts);
+		throw std::invalid_argument("Error : could not open file.");
+
 	getline(data_file, line);
-	closer_pos = -1;
 	while (getline(data_file, line))
 	{
 		pos = line.find(',');
@@ -109,60 +59,116 @@ float	BitcoinExchange::find_value(std::string date)
 		}
 		else
 		{
-			strptime((line.substr(0, pos)).c_str(), formatPattern.c_str(), &timeParts);
-			data = std::mktime(&timeParts);
-			if (std::abs(data - input) < closer_pos || closer_pos < 0)
-				closer_pos = std::abs(data - input);
-			else if (std::abs(data - input) > closer_pos)
-				break ;
+			line[pos] = ' ';
+
+			std::stringstream	ss(line);
+			ss >> temp;
+			ss >> nb;
 		}
-		before_line = line;
+		this->_data_value.insert(std::make_pair(temp, nb));
 	}
-	std::stringstream	ss(before_line.substr(pos + 1, before_line.size() - pos - 1));
-	ss >> res;
-	data_file.close();
-	return (res);
 }
 
-bool	BitcoinExchange::bad_date(std::string date)
+float	BitcoinExchange::_find_value(std::string date)
 {
-	std::string			year;
-	std::string			month;
-	std::string			day;
-	std::stringstream	ss;
-	int					val;
-	std::string			formatPattern = "%Y-%m-%d";  
-    tm					timeParts = {};
-    
-    if (!strptime(date.c_str(), formatPattern.c_str(), &timeParts))
-    {
-        return (true);
-    }
-	month = date.substr(5, 2);
-	day = date.substr(8, 2);
-	ss << year;
-	ss >> val;
-	if (month == "2" && ((val % 4 == 0 && day > "29") || (val % 4 != 0 && day > "28")))
+	std::map<std::string, float>::iterator	pos;
+
+	pos = this->_data_value.upper_bound(date);
+	pos--;
+	return (pos->second);
+}
+
+bool	BitcoinExchange::_bad_input(std::string str)
+{
+	int					year;
+	int					month;
+	int					day;
+	float				res;
+	
+	if (std::sscanf(str.c_str(), "%d-%d-%d | %f", &year, &month, &day, &res) < 4)
 		return (true);
+	if (month <= 0 || day <= 0)
+		return (true);
+	switch (month)
+	{
+		case 1:
+		case 3:
+		case 5:
+		case 7:
+		case 8:
+		case 10:
+		case 12:
+			if (day > 31)
+				return (true);
+			break ;
+
+		case 2:
+			if ((year % 4 == 0 && day > 29) || ((year % 4 != 0 || (year % 100 == 0 && year % 400 != 0)) && day > 28))
+				return (true);
+			break ;
+
+		case 4:
+		case 6:
+		case 9:
+		case 11:
+			if (day > 30)
+				return (true);
+			break ;
+		default :
+			return (true);
+	}
 	return (false);
 }
 
 // PUBLIC
-void	BitcoinExchange::computing()
+void	BitcoinExchange::computing(std::string input_file)
 {
-	while (!this->_input_value.empty())
+	std::ifstream		file;
+	std::string			line;
+	std::string			temp;
+	float				nb;
+	size_t				pos;
+	int					count;
+
+	file.open(input_file.c_str());
+	if (!file.is_open())
+		throw std::invalid_argument("Error : could not open input file.");
+	count = 0;
+	while (getline(file, line))
 	{
-		if (bad_date(this->_input_value.front().first))
-			std::cerr << "Error : bad input => " << this->_input_value.front().first << std::endl;
+		if (line == "date | value")
+		{
+			if (count == 0)
+			{
+				count++;
+				continue ;
+			}
+			else
+			{
+				std::cerr << "Error : bad input => " << line << std::endl;
+				continue ;
+			}
+		}
+		pos = line.find('|');
+		if (pos == std::string::npos)
+		{
+			std::cerr << "Error : bad input => " << line << std::endl;
+			continue ;
+		}
+		if (this->_bad_input(line))
+			std::cerr << "Error : bad input => " << line << std::endl;
 		else
 		{
-			if (this->_input_value.front().second < 0)
+			line[pos] = ' ';
+			std::stringstream	ss(line);
+			ss >> temp;
+			ss >> nb;
+			if (nb < 0)
 				std::cerr << "Error : not a positive number." << std::endl;
-			else if (this->_input_value.front().second > 1000)
+			else if (nb > 1000)
 				std::cerr << "Error : too large a number." << std::endl;
 			else
-				std::cout << this->_input_value.front().first << " => " << this->_input_value.front().second << " = " << this->_input_value.front().second * this->find_value(this->_input_value.front().first) << std::endl;
+				std::cout << temp << " => " << nb << " = " << nb * this->_find_value(temp) << std::endl;
 		}
-		this->_input_value.pop_front();
 	}
 }
