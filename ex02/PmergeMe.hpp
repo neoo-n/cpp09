@@ -3,6 +3,7 @@
 #define PMERGEME_HPP
 
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <sstream>
 #include <exception>
@@ -26,6 +27,7 @@ class PmergeMe
 
 		std::vector<pm *>	_swaping(std::vector<pm *> v, size_t i1, size_t i2);
 		std::vector<int>	_jacobstahl_compute(int size);
+		int					_binary_search(std::vector<pm *> v, pm *elt);
 
 	public:
 		PmergeMe(int ac, char **av);

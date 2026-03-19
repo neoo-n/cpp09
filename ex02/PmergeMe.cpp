@@ -152,6 +152,37 @@ std::vector<int>	PmergeMe::_jacobstahl_compute(int size)
 	return (res);
 }
 
+int	PmergeMe::_binary_search(std::vector<pm *> v, pm *elt)
+{
+	std::vector<pm *>::iterator it;
+	size_t						index_max;
+	size_t						index_min;
+	size_t						index_look;
+
+	it = std::find(v.begin(), v.end(), elt);
+	index_max = it - v.begin();
+	if (index_max == 0)
+		return (0);
+	index_min = 0;
+	index_look = (index_max - index_min) / 2;
+	while (index_min + 1 == index_max)
+	{
+		if (v[index_look]->max < elt->max)
+		{
+			index_min = index_look;
+			index_look += (index_max - index_min) / 2;
+		}
+		else
+		{
+			index_max = index_look;
+			index_look -= (index_max - index_min) / 2;
+		}
+	}
+	if (elt->max < v[index_min]->max)
+		return (index_min);
+	return (index_max);
+}
+
 // PUBLIC
 
 std::vector<pm *>	PmergeMe::getElt() const
@@ -226,28 +257,15 @@ std::vector<pm *>	PmergeMe::sorting_vect(std::vector<pm *> list_to_sort)
 	}
 	for (size_t i = 0; i < jacobsthal_list.size(); i++)
 	{
+		std::cout << "in here" << std::endl;
 		if (temp[jacobsthal_list[i] - 1]->lower.size() > 0)
 		{
 			pm	*elt_temp;
-			std::cout << "meh : " << jacobsthal_list[i] - 1 << ", " << temp[jacobsthal_list[i] - 1]->lower.size() - 1<< std::endl;
 			elt_temp = temp[jacobsthal_list[i] - 1]->lower[temp[jacobsthal_list[i] - 1]->lower.size() - 1];
-			std::cout << "mehhhhhhh " << std::endl;
+			std::cout << "elt : " << elt_temp->max << std::endl;
 			res[jacobsthal_list[i] - 1]->lower.pop_back();
-			std::cout << "mehhhhhhh " << std::endl;
-			if (i == 0)
-				res.insert(res.begin(), elt_temp);
-			else
-			{
-				for (std::vector<pm *>::iterator it = res.begin() + i - 1; it >= res.begin(); it--)
-				{
-					if ((*it)->max < elt_temp->max)
-					{
-						res.insert(it, elt_temp);
-						
-					}
-				}
-			}
-
+			
+			res.insert(res.begin() + this->_binary_search(res, temp[jacobsthal_list[i] - 1]), elt_temp);
 		}
 	}
 	if (rest)
