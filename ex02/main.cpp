@@ -10,7 +10,7 @@ int main(int ac, char **av)
 	try
 	{
 		PmergeMe	pm(ac, av);
-		pm.sorting_vect(pm.getElt());
+		pm.sorting(pm.getElt());
 	}
 	catch(const std::exception& e)
 	{
