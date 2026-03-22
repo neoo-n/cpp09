@@ -34,7 +34,6 @@ PmergeMe::PmergeMe(const PmergeMe &cpy)
 
 PmergeMe::~PmergeMe()
 {
-
 }
 
 PmergeMe	&PmergeMe::operator=(const PmergeMe &obj)
@@ -288,7 +287,6 @@ std::vector<pm_vect *>	PmergeMe::sorting_vect(std::vector<pm_vect *> list_to_sor
 		}
 		if (nb_val_list % 2 == 1)
 		{
-			rest = new pm_vect;
 			rest = list_to_sort[nb_val_list - 1];
 		}
 		temp = this->sorting_vect(val);
@@ -372,7 +370,6 @@ std::deque<pm_deque *>	PmergeMe::sorting_deque(std::deque<pm_deque *> list_to_so
 		}
 		if (nb_val_list % 2 == 1)
 		{
-			rest = new pm_deque;
 			rest = list_to_sort[nb_val_list - 1];
 		}
 		temp = this->sorting_deque(val);
@@ -451,6 +448,14 @@ void	PmergeMe::sorting()
 	std::cout << "Time to process a range of " << this->_elt_deque.size() << " elements with std::deque : " << 1000.0 * (time_end_deque - time_deque) / CLOCKS_PER_SEC << "ms" << std::endl;
 
 	// this->is_sorted(vect_res, deque_res);
+	for (size_t	i = 0; i < vect_res.size() ; i++)
+	{
+		delete vect_res[i];
+	}
+	for (size_t	i = 0; i < deque_res.size() ; i++)
+	{
+		delete deque_res[i];
+	}
 }
 
 void	PmergeMe::is_sorted(std::vector<pm_vect *> v, std::deque<pm_deque *> d)
