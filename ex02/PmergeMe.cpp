@@ -15,12 +15,19 @@ PmergeMe::PmergeMe(const PmergeMe &cpy)
 {
 	if (this != &cpy)
 	{
-		for (size_t i = 0; i < cpy._elt.size(); i++)
+		for (size_t i = 0; i < cpy._elt_vect.size(); i++)
 		{
-			pm *elt = new pm;
-			elt->max = cpy._elt[i]->max;
-			elt->lower = cpy._elt[i]->lower;
-			this->_elt.push_back(elt);
+			pm_vect *elt = new pm_vect;
+			elt->max = cpy._elt_vect[i]->max;
+			elt->lower = cpy._elt_vect[i]->lower;
+			this->_elt_vect.push_back(elt);
+		}
+		for (size_t i = 0; i < cpy._elt_deque.size(); i++)
+		{
+			pm_deque *elt = new pm_deque;
+			elt->max = cpy._elt_deque[i]->max;
+			elt->lower = cpy._elt_deque[i]->lower;
+			this->_elt_deque.push_back(elt);
 		}
 	}
 }
@@ -34,12 +41,19 @@ PmergeMe	&PmergeMe::operator=(const PmergeMe &obj)
 {
 	if (this != &obj)
 	{
-		for (size_t i = 0; i < obj._elt.size(); i++)
+		for (size_t i = 0; i < obj._elt_vect.size(); i++)
 		{
-			pm *elt = new pm;
-			elt->max = obj._elt[i]->max;
-			elt->lower = obj._elt[i]->lower;
-			this->_elt.push_back(elt);
+			pm_vect *elt = new pm_vect;
+			elt->max = obj._elt_vect[i]->max;
+			elt->lower = obj._elt_vect[i]->lower;
+			this->_elt_vect.push_back(elt);
+		}
+		for (size_t i = 0; i < obj._elt_deque.size(); i++)
+		{
+			pm_deque *elt = new pm_deque;
+			elt->max = obj._elt_deque[i]->max;
+			elt->lower = obj._elt_deque[i]->lower;
+			this->_elt_deque.push_back(elt);
 		}
 	}
 	return (*this);
@@ -50,9 +64,14 @@ PmergeMe	&PmergeMe::operator=(const PmergeMe &obj)
 
 bool	PmergeMe::_isDuplicate(int temp)
 {
-	for (size_t	i = 0; i < this->_elt.size(); i++)
+	for (size_t	i = 0; i < this->_elt_vect.size(); i++)
 	{
-		if (this->_elt[i]->max == temp)
+		if (this->_elt_vect[i]->max == temp)
+			return (true);
+	}
+	for (size_t	i = 0; i < this->_elt_deque.size(); i++)
+	{
+		if (this->_elt_deque[i]->max == temp)
 			return (true);
 	}
 	return (false);
@@ -74,33 +93,13 @@ void	PmergeMe::_parsing(int ac, char **av)
 			throw std::invalid_argument("Error : input has value zero");
 		if (this->_isDuplicate(temp))
 			throw std::invalid_argument("Error : invalid input, it's a duplicate");
-		pm	*elt = new pm;
-		elt->max = temp;
-		this->_elt.push_back(elt);
+		pm_vect	*elt_vect = new pm_vect;
+		elt_vect->max = temp;
+		this->_elt_vect.push_back(elt_vect);
+		pm_deque	*elt_deque = new pm_deque;
+		elt_deque->max = temp;
+		this->_elt_deque.push_back(elt_deque);
 	}
-	// for (size_t i = 0; i < this->_elt.size(); i++)
-	// {
-	// 	std::cout << this->_elt[i]->max<< " ";
-	// }
-	// std::cout << std::endl;
-}
-
-std::vector<pm *>	PmergeMe::_swaping(std::vector<pm *> v, size_t i1, size_t i2)
-{
-	std::vector<pm *>	res;
-	size_t			size;
-
-	size = v.size();
-	for(size_t i = 0; i < size; i++)
-	{
-		if (i == i1)
-			res.push_back(v[i2]);
-		else if (i == i2)
-			res.push_back(v[i1]);
-		else
-			res.push_back(v[i]);
-	}
-	return (res);
 }
 
 std::vector<int>	PmergeMe::_jacobstahl_compute(int size)
@@ -153,13 +152,13 @@ std::vector<int>	PmergeMe::_jacobstahl_compute(int size)
 	return (res);
 }
 
-int	PmergeMe::_binary_search(std::vector<pm *> v, pm *elt_max, pm *elt_min)
+int	PmergeMe::_binary_search_vect(std::vector<pm_vect *> v, pm_vect *elt_max, pm_vect *elt_min)
 {
 	size_t						index_max;
 	size_t						index_min;
 	size_t						index_look;
 
-	index_max = this->_find_index(v, elt_max);
+	index_max = this->_find_index_vect(v, elt_max);
 	if (index_max == 0)
 		return (0);
 	index_min = 0;
@@ -182,7 +181,36 @@ int	PmergeMe::_binary_search(std::vector<pm *> v, pm *elt_max, pm *elt_min)
 	return (index_max);
 }
 
-int	PmergeMe::_find_index(std::vector<pm *> v, pm *elt)
+int	PmergeMe::_binary_search_deque(std::deque<pm_deque *> d, pm_deque *elt_max, pm_deque *elt_min)
+{
+	size_t						index_max;
+	size_t						index_min;
+	size_t						index_look;
+
+	index_max = this->_find_index_deque(d, elt_max);
+	if (index_max == 0)
+		return (0);
+	index_min = 0;
+	index_look = (index_max - index_min) / 2;
+	while (index_min < index_max - 1)
+	{
+		if (d[index_look]->max < elt_min->max)
+		{
+			index_min = index_look;
+			index_look += (index_max - index_min) / 2;
+		}
+		else
+		{
+			index_max = index_look;
+			index_look -= (index_max - index_min) / 2;
+		}
+	}
+	if (elt_min->max < d[index_min]->max)
+		return (index_min);
+	return (index_max);
+}
+
+int	PmergeMe::_find_index_vect(std::vector<pm_vect *> v, pm_vect *elt)
 {
 	int	index;
 
@@ -190,37 +218,55 @@ int	PmergeMe::_find_index(std::vector<pm *> v, pm *elt)
 	return (index); 
 }
 
-void	PmergeMe::_print_vect(std::vector<pm *> v)
+int	PmergeMe::_find_index_deque(std::deque<pm_deque *> d, pm_deque *elt)
+{
+	int	index;
+
+	index = std::find(d.begin(), d.end(), elt) - d.begin();
+	return (index); 
+}
+
+void	PmergeMe::_print_vect(std::vector<pm_vect *> v)
 {
 	size_t	size_vect;
 
 	size_vect = v.size();
-	if (size_vect > 10)
-		size_vect = 10;
-	for (size_t i = 0; i < size_vect; i++)
+	for (size_t i = 0; i < size_vect && i < 10; i++)
 	{
 		std::cout << v[i]->max;
 		if (i < size_vect - 1)
 			std::cout << " ";
 	}
+	if (size_vect > 10)
+		std::cout << "[...]";
+}
+
+void	PmergeMe::_print_deque(std::deque<pm_deque *> d)
+{
+	size_t	size_deque;
+
+	size_deque = d.size();
+	for (size_t i = 0; i < size_deque && i < 10; i++)
+	{
+		std::cout << d[i]->max;
+		if (i < size_deque - 1)
+			std::cout << " ";
+	}
+	if (size_deque > 10)
+		std::cout << "[...]";
 }
 
 // PUBLIC
 
-std::vector<pm *>	PmergeMe::getElt() const
-{
-	return (this->_elt);
-}
-
-std::vector<pm *>	PmergeMe::sorting_vect(std::vector<pm *> list_to_sort)
+std::vector<pm_vect *>	PmergeMe::sorting_vect(std::vector<pm_vect *> list_to_sort)
 {
 	size_t				nb_val_list;
 	size_t				half_nb;
-	std::vector<pm *>	val;
-	std::vector<pm *>	res;
-	std::vector<pm *>	temp;
+	std::vector<pm_vect *>	val;
+	std::vector<pm_vect *>	res;
+	std::vector<pm_vect *>	temp;
 	std::vector<int>	jacobsthal_list;
-	pm					*rest;
+	pm_vect					*rest;
 
 	rest = NULL;
 	nb_val_list = list_to_sort.size();
@@ -242,34 +288,24 @@ std::vector<pm *>	PmergeMe::sorting_vect(std::vector<pm *> list_to_sort)
 		}
 		if (nb_val_list % 2 == 1)
 		{
-			rest = new pm;
+			rest = new pm_vect;
 			rest = list_to_sort[nb_val_list - 1];
 		}
-		// std::cout << "size val : " << val.size() << std::endl;
-		// for (size_t i = 0; i < val.size(); i++)
-		// {
-		// 	std::cout << "val : " << val[i]->max << ", size : " << val[i]->lower.size() << " - elt : " << val[i]->lower[0]->max << std::endl;
-		// 	if (val[i]->lower.size() == 2)
-		// 		std::cout << "2nd : " << val[i]->lower[1]->max << ", " << val[i]->lower[1]->lower[0]->max << std ::endl;
-		// }
 		temp = this->sorting_vect(val);
-		// std::cout << "size temp : " << temp.size() << std::endl;
-		// for (size_t i = 0; i < temp.size(); i++)
-		// {
-		// 	std::cout << temp[i]->max << " " << temp[i]->lower.size() << std::endl;
-		// }
-		// std::cout << std::endl;
 	}
 	else if (nb_val_list == 2)
 	{
 		if (list_to_sort[1]->max < list_to_sort[0]->max)
-			list_to_sort = this->_swaping(list_to_sort, 0, 1);
+		{
+			list_to_sort.insert(list_to_sort.begin(), list_to_sort[1]);
+			list_to_sort.pop_back();
+		}
 		return (list_to_sort);
 	}
 	else if (nb_val_list == 1)
 		return (list_to_sort);
 	jacobsthal_list = this->_jacobstahl_compute(temp.size());
-	for (std::vector<pm *>::iterator it = temp.begin(); it < temp.end(); it++)
+	for (std::vector<pm_vect *>::iterator it = temp.begin(); it < temp.end(); it++)
 	{
 		res.push_back(*it);
 	}
@@ -277,16 +313,16 @@ std::vector<pm *>	PmergeMe::sorting_vect(std::vector<pm *> list_to_sort)
 	{
 		if (temp[jacobsthal_list[i] - 1]->lower.size() > 0)
 		{
-			pm	*elt_temp;
+			pm_vect	*elt_temp;
 			elt_temp = temp[jacobsthal_list[i] - 1]->lower[temp[jacobsthal_list[i] - 1]->lower.size() - 1];
-			res[this->_find_index(res, temp[jacobsthal_list[i] - 1])]->lower.pop_back();
-			int index = this->_binary_search(res, temp[jacobsthal_list[i] - 1] , elt_temp);
+			res[this->_find_index_vect(res, temp[jacobsthal_list[i] - 1])]->lower.pop_back();
+			int index = this->_binary_search_vect(res, temp[jacobsthal_list[i] - 1] , elt_temp);
 			res.insert(res.begin() + index, elt_temp);
 		}
 	}
 	if (rest)
 	{
-		for (std::vector<pm *>::iterator it = res.begin(); it < res.end(); it++)
+		for (std::vector<pm_vect *>::iterator it = res.begin(); it < res.end(); it++)
 		{
 			if ((*it)->max > rest->max)
 			{
@@ -306,20 +342,151 @@ std::vector<pm *>	PmergeMe::sorting_vect(std::vector<pm *> list_to_sort)
 	return (res);
 }
 
-void	PmergeMe::sorting(std::vector<pm *> list_to_sort)
+std::deque<pm_deque *>	PmergeMe::sorting_deque(std::deque<pm_deque *> list_to_sort)
 {
-	std::vector<pm *>	vect_res;
-	time_t				time_vect;
-	time_t				time_end;
+	size_t					nb_val_list;
+	size_t					half_nb;
+	std::deque<pm_deque *>	val;
+	std::deque<pm_deque *>	res;
+	std::deque<pm_deque *>	temp;
+	std::vector<int>		jacobsthal_list;
+	pm_deque				*rest;
 
-	std::time(&time_vect);
-	vect_res = this->sorting_vect(list_to_sort);
-	std::time(&time_end);
+	rest = NULL;
+	nb_val_list = list_to_sort.size();
+	if (nb_val_list > 2)
+	{
+		half_nb = list_to_sort.size() / 2;
+		for (size_t i = 0; i < half_nb; i++)
+		{
+			if (list_to_sort[i * 2]->max < list_to_sort[i * 2 + 1]->max)
+			{
+				list_to_sort[i * 2 + 1]->lower.push_back(list_to_sort[i * 2]);
+				val.push_back(list_to_sort[i * 2 + 1]);
+			}
+			else
+			{
+				list_to_sort[i * 2]->lower.push_back(list_to_sort[i * 2 + 1]);
+				val.push_back(list_to_sort[i * 2]);
+			}
+		}
+		if (nb_val_list % 2 == 1)
+		{
+			rest = new pm_deque;
+			rest = list_to_sort[nb_val_list - 1];
+		}
+		temp = this->sorting_deque(val);
+	}
+	else if (nb_val_list == 2)
+	{
+		if (list_to_sort[1]->max < list_to_sort[0]->max)
+		{
+			list_to_sort.insert(list_to_sort.begin(), list_to_sort[1]);
+			list_to_sort.pop_back();
+		}
+		return (list_to_sort);
+	}
+	else if (nb_val_list == 1)
+		return (list_to_sort);
+	jacobsthal_list = this->_jacobstahl_compute(temp.size());
+	for (std::deque<pm_deque *>::iterator it = temp.begin(); it < temp.end(); it++)
+	{
+		res.push_back(*it);
+	}
+	for (size_t i = 0; i < jacobsthal_list.size(); i++)
+	{
+		if (temp[jacobsthal_list[i] - 1]->lower.size() > 0)
+		{
+			pm_deque	*elt_temp;
+			elt_temp = temp[jacobsthal_list[i] - 1]->lower[temp[jacobsthal_list[i] - 1]->lower.size() - 1];
+			res[this->_find_index_deque(res, temp[jacobsthal_list[i] - 1])]->lower.pop_back();
+			int index = this->_binary_search_deque(res, temp[jacobsthal_list[i] - 1] , elt_temp);
+			res.insert(res.begin() + index, elt_temp);
+		}
+	}
+	if (rest)
+	{
+		for (std::deque<pm_deque *>::iterator it = res.begin(); it < res.end(); it++)
+		{
+			if ((*it)->max > rest->max)
+			{
+				res.insert(it, rest);
+				break ;
+			}
+			else
+			{
+				if (it == res.end() - 1)
+				{
+					res.push_back(rest);
+					break ;
+				}
+			}
+		}
+	}
+	return (res);
+}
+
+void	PmergeMe::sorting()
+{
+	std::vector<pm_vect *>	vect_res;
+	clock_t					time_vect;
+	clock_t					time_end_vect;
+	std::deque<pm_deque *>	deque_res;
+	clock_t					time_deque;
+	clock_t					time_end_deque;
+
+	time_vect = std::clock();
+	vect_res = this->sorting_vect(this->_elt_vect);
+	time_end_vect = std::clock();
+	time_deque = std::clock();
+	deque_res = this->sorting_deque(this->_elt_deque);
+	time_end_deque = std::clock();
 	std::cout << "Before : ";
-	this->_print_vect(list_to_sort);
+	this->_print_vect(this->_elt_vect);
 	std::cout << std::endl; 
 	std::cout << "After : ";
 	this->_print_vect(vect_res);
 	std::cout << std::endl; 
-	std::cout << "Time to process a range of " << list_to_sort.size() << " elements with std::[..] : " << (time_end - time_vect) * 1000 << "us" << std::endl;
+	std::cout << "Time to process a range of " << this->_elt_vect.size() << " elements with std::vector : " << 1000.0 * (time_end_vect - time_vect) / CLOCKS_PER_SEC << "ms" << std::endl;
+	std::cout << "Time to process a range of " << this->_elt_deque.size() << " elements with std::deque : " << 1000.0 * (time_end_deque - time_deque) / CLOCKS_PER_SEC << "ms" << std::endl;
+
+	// this->is_sorted(vect_res, deque_res);
+}
+
+void	PmergeMe::is_sorted(std::vector<pm_vect *> v, std::deque<pm_deque *> d)
+{
+	size_t	size_vect;
+	size_t	size_deque;
+	bool	is_sorted;
+	size_t	index;
+
+	size_vect = v.size();
+	size_deque = d.size();
+	is_sorted = true;
+	index = 0;
+	for (; index < size_vect - 1; index++)
+	{
+		if (v[index]->max > v[index + 1]->max)
+		{
+			is_sorted = false;
+			break ;
+		}
+	}
+	if (is_sorted)
+		std::cout << "it is sorted" << std::endl;
+	else
+		std::cout << "it is not sorted : " << v[index]->max << ", " << v[index + 1]->max << ", index : "<< index << std ::endl;
+	index = 0;
+	for (; index < size_deque - 1; index++)
+	{
+		if (d[index]->max > d[index + 1]->max)
+		{
+			is_sorted = false;
+			break ;
+		}
+	}
+	if (is_sorted)
+		std::cout << "it is sorted" << std::endl;
+	else
+		std::cout << "it is not sorted : " << d[index]->max << ", " << d[index + 1]->max << ", index : "<< index << std ::endl;
 }

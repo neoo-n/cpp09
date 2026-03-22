@@ -9,8 +9,8 @@ int main(int ac, char **av)
 	}
 	try
 	{
-		PmergeMe	pm(ac, av);
-		pm.sorting(pm.getElt());
+		PmergeMe	pm_vect(ac, av);
+		pm_vect.sorting();
 	}
 	catch(const std::exception& e)
 	{
