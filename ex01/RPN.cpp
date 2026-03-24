@@ -57,24 +57,34 @@ void	RPN::computing(std::string list_input)
 		std::stringstream	ss;
 		if (temp == "+")
 		{
+			if (this->_value_stack.size() < 2)
+				throw std::length_error("Error");
 			value = this->_value_stack.top();
 			this->_value_stack.pop();
 			this->_value_stack.top() += value;
 		}
 		else if (temp == "-")
 		{
+			if (this->_value_stack.size() < 2)
+				throw std::length_error("Error");
 			value = this->_value_stack.top();
 			this->_value_stack.pop();
 			this->_value_stack.top() -= value;
 		}
 		else if (temp == "/")
 		{
+			if (this->_value_stack.size() < 2)
+				throw std::length_error("Error");
 			value = this->_value_stack.top();
 			this->_value_stack.pop();
+			if (value == 0)
+				throw std::logic_error("Error");
 			this->_value_stack.top() /= value;
 		}
 		else if (temp == "*")
 		{
+			if (this->_value_stack.size() < 2)
+				throw std::length_error("Error");
 			value = this->_value_stack.top();
 			this->_value_stack.pop();
 			this->_value_stack.top() *= value;
