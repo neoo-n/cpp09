@@ -36,6 +36,24 @@ PmergeMe::~PmergeMe()
 {
 }
 
+void	PmergeMe::_cleaning()
+{
+	size_t	size;
+
+	std::cout << "meh" << std::endl;
+	size = this->_elt_vect.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (this->_elt_vect[i])
+			delete this->_elt_vect[i];
+	}
+	size = this->_elt_deque.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (this->_elt_deque[i])
+			delete this->_elt_deque[i];
+	}
+}
 PmergeMe	&PmergeMe::operator=(const PmergeMe &obj)
 {
 	if (this != &obj)
@@ -85,13 +103,22 @@ void	PmergeMe::_parsing(int ac, char **av)
 	{
 		str_temp = av[i];
 		if (str_temp.find_first_not_of("1234567890") != std::string::npos)
+		{
+			this->_cleaning();
 			throw std::invalid_argument("Error : invalid input");
+		}
 		std::stringstream	ss(str_temp);
 		ss >> temp;
 		if (temp == 0)
+		{
+			this->_cleaning();
 			throw std::invalid_argument("Error : input has value zero");
+		}
 		if (this->_isDuplicate(temp))
+		{
+			this->_cleaning();
 			throw std::invalid_argument("Error : invalid input, it's a duplicate");
+		}
 		pm_vect	*elt_vect = new pm_vect;
 		elt_vect->max = temp;
 		this->_elt_vect.push_back(elt_vect);
@@ -447,7 +474,7 @@ void	PmergeMe::sorting()
 	std::cout << "Time to process a range of " << this->_elt_vect.size() << " elements with std::vector : " << 1000.0 * (time_end_vect - time_vect) / CLOCKS_PER_SEC << "ms" << std::endl;
 	std::cout << "Time to process a range of " << this->_elt_deque.size() << " elements with std::deque : " << 1000.0 * (time_end_deque - time_deque) / CLOCKS_PER_SEC << "ms" << std::endl;
 
-	// this->is_sorted(vect_res, deque_res);
+	this->is_sorted(vect_res, deque_res);
 	for (size_t	i = 0; i < vect_res.size() ; i++)
 	{
 		delete vect_res[i];

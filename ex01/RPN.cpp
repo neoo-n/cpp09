@@ -3,7 +3,6 @@
 // CONSTRUCTOR & DESTRUCTOR
 RPN::RPN()
 {
-
 }
 
 RPN::RPN(const RPN &cpy)
@@ -28,6 +27,22 @@ RPN	&RPN::operator=(const RPN &obj)
 	return (*this);
 }
 
+void	RPN::_parsing(std::string list_input)
+{
+	std::stringstream	ss1(list_input);
+	std::string			temp;
+
+	if (list_input.find_first_not_of("0123456789/*-+ ") != std::string::npos)
+		throw std::invalid_argument("Error");
+	while (ss1 >> temp)
+	{
+		if (temp.size() > 1 && (temp.find_first_of("+-*/") != std::string::npos))
+		{
+			throw std::invalid_argument("Error");
+		}
+	}
+}
+
 // METHODS
 // PUBLIC
 void	RPN::computing(std::string list_input)
@@ -36,8 +51,7 @@ void	RPN::computing(std::string list_input)
 	std::string			temp;
 	int					value;
 
-	if (list_input.find_first_not_of("0123456789/*-+ ") != std::string::npos)
-		throw std::invalid_argument("Error");
+	this->_parsing(list_input);
 	while (ss1 >> temp)
 	{
 		std::stringstream	ss;
@@ -69,8 +83,12 @@ void	RPN::computing(std::string list_input)
 		{
 			ss << temp;
 			ss >> value;
+			if (value > 9 || value < 0)
+				throw std::invalid_argument("Error");
 			this->_value_stack.push(value);
 		}
 	}
+	if (this->_value_stack.size() != 1)
+		throw std::invalid_argument("Error");
 	std::cout << this->_value_stack.top() << std::endl;
 }

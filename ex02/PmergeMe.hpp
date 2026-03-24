@@ -43,6 +43,8 @@ class PmergeMe
 		void	_print_vect(std::vector<pm_vect *> v);
 		void	_print_deque(std::deque<pm_deque *> d);
 
+		void	_cleaning();
+
 	public:
 		PmergeMe(int ac, char **av);
 		~PmergeMe();

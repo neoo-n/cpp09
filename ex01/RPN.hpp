@@ -15,7 +15,9 @@ class RPN
 		RPN(const RPN &cpy);
 		RPN	&operator=(const RPN &obj);
 		
-		public:
+		void	_parsing(std::string list_input);
+		
+	public:
 		RPN();
 		~RPN();
 
