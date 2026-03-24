@@ -69,27 +69,48 @@ void	BitcoinExchange::_setting_value()
 	}
 }
 
-float	BitcoinExchange::_find_value(std::string date)
+bool	BitcoinExchange::_find_value()
 {
 	std::map<std::string, float>::iterator	pos;
+	std::stringstream						ss;
+	std::string								date;
 
+	ss << this->_date.year;
+	ss >> date;
+	date.append("-");
+	if (this->_date.month < 10)
+		date.append("0");
+	ss.str("");
+	ss.clear();
+	ss << this->_date.month;
+	date.append(ss.str() + "-");
+	if (this->_date.day < 10)
+		date.append("0");
+	ss.str("");
+	ss.clear();
+	ss << this->_date.day;
+	date.append(ss.str());
+	// std::cout << "date : " << date << std::endl;
 	pos = this->_data_value.upper_bound(date);
+	if (pos == this->_data_value.begin())
+	{
+		std::cerr << "Error : the data file doesn't have data this old => ";
+		return (false);
+	}
 	pos--;
-	return (pos->second);
+	this->_price = pos->second;
+	return (true);
 }
 
 bool	BitcoinExchange::_bad_input(std::string str)
 {
-	int					year;
-	int					month;
-	int					day;
 	float				res;
 	
-	if (std::sscanf(str.c_str(), "%d-%d-%d | %f", &year, &month, &day, &res) < 4)
+	if (std::sscanf(str.c_str(), "%d-%d-%d | %f", &this->_date.year, &this->_date.month, &this->_date.day, &res) < 4)
 		return (true);
-	if (month <= 0 || day <= 0)
+	if (this->_date.month <= 0 || this->_date.day <= 0)
 		return (true);
-	switch (month)
+	switch (this->_date.month)
 	{
 		case 1:
 		case 3:
@@ -98,12 +119,12 @@ bool	BitcoinExchange::_bad_input(std::string str)
 		case 8:
 		case 10:
 		case 12:
-			if (day > 31)
+			if (this->_date.day > 31)
 				return (true);
 			break ;
 
 		case 2:
-			if ((year % 4 == 0 && day > 29) || ((year % 4 != 0 || (year % 100 == 0 && year % 400 != 0)) && day > 28))
+			if ((this->_date.year % 4 == 0 && this->_date.day > 29) || ((this->_date.year % 4 != 0 || (this->_date.year % 100 == 0 && this->_date.year % 400 != 0)) && this->_date.day > 28))
 				return (true);
 			break ;
 
@@ -111,7 +132,7 @@ bool	BitcoinExchange::_bad_input(std::string str)
 		case 6:
 		case 9:
 		case 11:
-			if (day > 30)
+			if (this->_date.day > 30)
 				return (true);
 			break ;
 		default :
@@ -157,6 +178,8 @@ void	BitcoinExchange::computing(std::string input_file)
 		}
 		if (this->_bad_input(line))
 			std::cerr << "Error : bad input => " << line << std::endl;
+		else if (!this->_find_value())
+			std::cout << line << std::endl;
 		else
 		{
 			line[pos] = ' ';
@@ -168,7 +191,18 @@ void	BitcoinExchange::computing(std::string input_file)
 			else if (nb > 1000)
 				std::cerr << "Error : too large a number." << std::endl;
 			else
-				std::cout << temp << " => " << nb << " = " << nb * this->_find_value(temp) << std::endl;
+			{
+				// std::cout << "nb : " << nb << ", price : " << this->_price << std::endl;
+				std::cout << this->_date.year << "-";
+				if (this->_date.month < 10)
+					std::cout << "0";
+				std::cout << this->_date.month << "-";
+				if (this->_date.day < 10)
+					std::cout << "0";
+				std::cout << this->_date.day;				
+				std::cout << " => " << nb << " = " << nb * this->_price << std::endl;
+
+			}
 		}
 	}
 }
