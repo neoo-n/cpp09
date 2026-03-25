@@ -23,6 +23,7 @@ class BitcoinExchange
 		std::map<std::string, float>	_data_value;
 		std::string						_file_data_name;
 		date							_date;
+		float							_nb_bitcoin;
 		float							_price;
 
 		BitcoinExchange();

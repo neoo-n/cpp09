@@ -104,9 +104,7 @@ bool	BitcoinExchange::_find_value()
 
 bool	BitcoinExchange::_bad_input(std::string str)
 {
-	float				res;
-	
-	if (std::sscanf(str.c_str(), "%d-%d-%d | %f", &this->_date.year, &this->_date.month, &this->_date.day, &res) != 4)
+	if (std::sscanf(str.c_str(), "%d-%d-%d | %f", &this->_date.year, &this->_date.month, &this->_date.day, &this->_nb_bitcoin) != 4)
 		return (true);
 	if (this->_date.month <= 0 || this->_date.day <= 0)
 		return (true);
@@ -146,8 +144,6 @@ void	BitcoinExchange::computing(std::string input_file)
 {
 	std::ifstream		file;
 	std::string			line;
-	std::string			temp;
-	float				nb;
 	size_t				pos;
 	int					count;
 
@@ -182,17 +178,12 @@ void	BitcoinExchange::computing(std::string input_file)
 			std::cout << line << std::endl;
 		else
 		{
-			line[pos] = ' ';
-			std::stringstream	ss(line);
-			ss >> temp;
-			ss >> nb;
-			if (nb < 0)
+			if (this->_nb_bitcoin < 0)
 				std::cerr << "Error : not a positive number." << std::endl;
-			else if (nb > 1000)
+			else if (this->_nb_bitcoin > 1000)
 				std::cerr << "Error : too large a number." << std::endl;
 			else
 			{
-				// std::cout << "nb : " << nb << ", price : " << this->_price << std::endl;
 				std::cout << this->_date.year << "-";
 				if (this->_date.month < 10)
 					std::cout << "0";
@@ -200,7 +191,7 @@ void	BitcoinExchange::computing(std::string input_file)
 				if (this->_date.day < 10)
 					std::cout << "0";
 				std::cout << this->_date.day;				
-				std::cout << " => " << nb << " = " << nb * this->_price << std::endl;
+				std::cout << " => " << this->_nb_bitcoin << " = " << this->_nb_bitcoin * this->_price << std::endl;
 
 			}
 		}
