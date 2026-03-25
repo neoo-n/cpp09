@@ -106,7 +106,7 @@ bool	BitcoinExchange::_bad_input(std::string str)
 {
 	float				res;
 	
-	if (std::sscanf(str.c_str(), "%d-%d-%d | %f", &this->_date.year, &this->_date.month, &this->_date.day, &res) < 4)
+	if (std::sscanf(str.c_str(), "%d-%d-%d | %f", &this->_date.year, &this->_date.month, &this->_date.day, &res) != 4)
 		return (true);
 	if (this->_date.month <= 0 || this->_date.day <= 0)
 		return (true);

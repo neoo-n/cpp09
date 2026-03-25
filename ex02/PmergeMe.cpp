@@ -95,7 +95,7 @@ bool	PmergeMe::_isDuplicate(int temp)
 
 void	PmergeMe::_parsing(int ac, char **av)
 {
-	int			temp;
+	double		temp;
 	std::string	str_temp;
 
 	for (int i = 1; i < ac; i++)
@@ -117,6 +117,11 @@ void	PmergeMe::_parsing(int ac, char **av)
 		{
 			this->_cleaning();
 			throw std::invalid_argument("Error : input has value zero");
+		}
+		else if (temp > 2147483647)
+		{
+			this->_cleaning();
+			throw std::invalid_argument("Error : input has overflowed");
 		}
 		if (this->_isDuplicate(temp))
 		{
@@ -182,13 +187,11 @@ std::vector<int>	PmergeMe::_jacobstahl_compute(int size)
 	return (res);
 }
 
-int	PmergeMe::_binary_search_vect(std::vector<pm_vect *> v, pm_vect *elt_max, pm_vect *elt_min)
+int	PmergeMe::_binary_search_vect(std::vector<pm_vect *> v, size_t index_max, pm_vect *elt_min)
 {
-	size_t						index_max;
-	size_t						index_min;
-	size_t						index_look;
+	size_t	index_min;
+	size_t	index_look;
 
-	index_max = this->_find_index_vect(v, elt_max);
 	if (index_max == 0)
 		return (0);
 	index_min = 0;
@@ -211,13 +214,11 @@ int	PmergeMe::_binary_search_vect(std::vector<pm_vect *> v, pm_vect *elt_max, pm
 	return (index_max);
 }
 
-int	PmergeMe::_binary_search_deque(std::deque<pm_deque *> d, pm_deque *elt_max, pm_deque *elt_min)
+int	PmergeMe::_binary_search_deque(std::deque<pm_deque *> d, size_t index_max, pm_deque *elt_min)
 {
-	size_t						index_max;
-	size_t						index_min;
-	size_t						index_look;
+	size_t	index_min;
+	size_t	index_look;
 
-	index_max = this->_find_index_deque(d, elt_max);
 	if (index_max == 0)
 		return (0);
 	index_min = 0;
@@ -296,9 +297,10 @@ std::vector<pm_vect *>	PmergeMe::sorting_vect(std::vector<pm_vect *> list_to_sor
 	std::vector<pm_vect *>	res;
 	std::vector<pm_vect *>	temp;
 	std::vector<int>	jacobsthal_list;
-	pm_vect					*rest;
+	int					index;
+	pm_vect					*remainder;
 
-	rest = NULL;
+	remainder = NULL;
 	nb_val_list = list_to_sort.size();
 	if (nb_val_list > 2)
 	{
@@ -318,7 +320,7 @@ std::vector<pm_vect *>	PmergeMe::sorting_vect(std::vector<pm_vect *> list_to_sor
 		}
 		if (nb_val_list % 2 == 1)
 		{
-			rest = list_to_sort[nb_val_list - 1];
+			remainder = list_to_sort[nb_val_list - 1];
 		}
 		temp = this->sorting_vect(val);
 	}
@@ -345,28 +347,18 @@ std::vector<pm_vect *>	PmergeMe::sorting_vect(std::vector<pm_vect *> list_to_sor
 			pm_vect	*elt_temp;
 			elt_temp = temp[jacobsthal_list[i] - 1]->lower[temp[jacobsthal_list[i] - 1]->lower.size() - 1];
 			res[this->_find_index_vect(res, temp[jacobsthal_list[i] - 1])]->lower.pop_back();
-			int index = this->_binary_search_vect(res, temp[jacobsthal_list[i] - 1] , elt_temp);
+			index = this->_binary_search_vect(res, this->_find_index_vect(res, temp[jacobsthal_list[i] - 1]) , elt_temp);
 			res.insert(res.begin() + index, elt_temp);
 		}
 	}
-	if (rest)
+	if (remainder)
 	{
-		for (std::vector<pm_vect *>::iterator it = res.begin(); it < res.end(); it++)
-		{
-			if ((*it)->max > rest->max)
-			{
-				res.insert(it, rest);
-				break ;
-			}
-			else
-			{
-				if (it == res.end() - 1)
-				{
-					res.push_back(rest);
-					break ;
-				}
-			}
-		}
+		index = this->_binary_search_vect(res, res.size() - 1, remainder);
+		if (remainder->max > res.back()->max)
+			res.push_back(remainder);
+		else
+			res.insert(res.begin() + index, remainder);
+		
 	}
 	return (res);
 }
@@ -379,9 +371,10 @@ std::deque<pm_deque *>	PmergeMe::sorting_deque(std::deque<pm_deque *> list_to_so
 	std::deque<pm_deque *>	res;
 	std::deque<pm_deque *>	temp;
 	std::vector<int>		jacobsthal_list;
-	pm_deque				*rest;
+	int						index;
+	pm_deque				*remainder;
 
-	rest = NULL;
+	remainder = NULL;
 	nb_val_list = list_to_sort.size();
 	if (nb_val_list > 2)
 	{
@@ -401,7 +394,7 @@ std::deque<pm_deque *>	PmergeMe::sorting_deque(std::deque<pm_deque *> list_to_so
 		}
 		if (nb_val_list % 2 == 1)
 		{
-			rest = list_to_sort[nb_val_list - 1];
+			remainder = list_to_sort[nb_val_list - 1];
 		}
 		temp = this->sorting_deque(val);
 	}
@@ -428,28 +421,17 @@ std::deque<pm_deque *>	PmergeMe::sorting_deque(std::deque<pm_deque *> list_to_so
 			pm_deque	*elt_temp;
 			elt_temp = temp[jacobsthal_list[i] - 1]->lower[temp[jacobsthal_list[i] - 1]->lower.size() - 1];
 			res[this->_find_index_deque(res, temp[jacobsthal_list[i] - 1])]->lower.pop_back();
-			int index = this->_binary_search_deque(res, temp[jacobsthal_list[i] - 1] , elt_temp);
+			index = this->_binary_search_deque(res, this->_find_index_deque(res, temp[jacobsthal_list[i] - 1]) , elt_temp);
 			res.insert(res.begin() + index, elt_temp);
 		}
 	}
-	if (rest)
+	if (remainder)
 	{
-		for (std::deque<pm_deque *>::iterator it = res.begin(); it < res.end(); it++)
-		{
-			if ((*it)->max > rest->max)
-			{
-				res.insert(it, rest);
-				break ;
-			}
-			else
-			{
-				if (it == res.end() - 1)
-				{
-					res.push_back(rest);
-					break ;
-				}
-			}
-		}
+		index = this->_binary_search_deque(res, res.size() - 1, remainder);
+		if (remainder->max > res.back()->max)
+			res.push_back(remainder);
+		else
+			res.insert(res.begin() + index, remainder);
 	}
 	return (res);
 }

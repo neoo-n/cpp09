@@ -35,8 +35,8 @@ class PmergeMe
 		void	_parsing(int ac, char **av);
 
 		std::vector<int>	_jacobstahl_compute(int size);
-		int					_binary_search_vect(std::vector<pm_vect *> v, pm_vect *elt_max, pm_vect *elt_min);
-		int					_binary_search_deque(std::deque<pm_deque *> d, pm_deque *elt_max, pm_deque *elt_min);
+		int					_binary_search_vect(std::vector<pm_vect *> v, size_t index_max, pm_vect *elt_min);
+		int					_binary_search_deque(std::deque<pm_deque *> d, size_t index_max, pm_deque *elt_min);
 		int					_find_index_vect(std::vector<pm_vect *> v, pm_vect *elt);
 		int					_find_index_deque(std::deque<pm_deque *> d, pm_deque *elt);
 
